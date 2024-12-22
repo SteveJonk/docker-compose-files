@@ -2,6 +2,8 @@ services:
   n8n:
     build:
       context: .
+      args:
+        N8N_VERSION: 1.72.1
     image: n8n-custom
     ports:
       - '8003:5678'
@@ -18,6 +20,16 @@ services:
       - NODE_FUNCTION_ALLOW_EXTERNAL=puppeteer,axios,qs
       - WEBHOOK_URL=https://n8n.stevejonk.com
       - N8N_ENCRYPTION_KEY=T2VxWG5iMTM1blZrZzV6T2dSZnM6MTpjaQ
+      - PUPPETEER_SKIP_DOWNLOAD=true
+      - CHROMIUM_PATH=/usr/bin/chromium-browser
+      - DISPLAY=:98
+    command: n8n
+    volumes:
+      - n8n-data:/home/node/.n8n
+    security_opt:
+      - seccomp=unconfined
+    cap_add:
+      - SYS_ADMIN
     depends_on:
       - db
     restart: always
@@ -26,12 +38,8 @@ services:
     image: postgres:12
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./n8n-data:/home/node/.n8n
     environment:
       - POSTGRES_USER=n8n
       - POSTGRES_PASSWORD=n8n
       - POSTGRES_DB=n8n
     restart: always
-
-volumes:
-  db-data:
