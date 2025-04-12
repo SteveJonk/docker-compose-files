@@ -43,3 +43,6 @@ services:
       - POSTGRES_PASSWORD=n8n
       - POSTGRES_DB=n8n
     restart: always
+
+volumes:
+  db-data:
