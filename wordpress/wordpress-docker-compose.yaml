@@ -35,6 +35,7 @@ services:
     volumes:
       - './:/var/www/html'
       - './uploads.ini:/usr/local/etc/php/conf.d/uploads.ini'
+    user: "33:33"   # Run as www-data inside the container
 
 volumes:
   mysql_data:
