@@ -39,12 +39,6 @@ services:
     volumes:
       - ./wp-content:/var/www/html/wp-content
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
-    entrypoint:
-      - bash
-      - -c
-      - |
-        chown -R www-data:www-data /var/www/html/wp-content
-        exec docker-entrypoint.sh apache2-foreground
-
+    
 volumes:
   mysql_data:
