@@ -1,36 +1,74 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  n8n:
-    image: n8nio/n8n
-    ports:
-      - '8003:5678'
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=user
-      - N8N_BASIC_AUTH_PASSWORD=password
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=db
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=n8n
-      - DB_POSTGRESDB_USER=n8n
-      - DB_POSTGRESDB_PASSWORD=n8n
-      - NODE_FUNCTION_ALLOW_EXTERNAL=axios,qs
-      - WEBHOOK_URL=https://n8n.stevejonk.com
-      - N8N_ENCRYPTION_KEY=T2VxWG5iMTM1blZrZzV6T2dSZnM6MTpjaQ
-    depends_on:
-      - db
-    restart: always
-
   db:
-    image: postgres:12
+    image: postgres:15
+    container_name: n8n-db
+    restart: always
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+      POSTGRES_DB: n8n
     volumes:
       - db-data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=n8n
-      - POSTGRES_PASSWORD=n8n
-      - POSTGRES_DB=n8n
+      - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    build:
+      context: .
+      args:
+        N8N_VERSION: 2.13.4
+    image: n8nio/n8n
+    container_name: n8n
     restart: always
+    ports:
+      - "8003:5678"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Auth
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: user
+      N8N_BASIC_AUTH_PASSWORD: password
+
+      # General
+      GENERIC_TIMEZONE: Europe/Amsterdam
+      WEBHOOK_URL: https://n8n.stevejonk.com
+      N8N_ENCRYPTION_KEY: T2VxWG5iMTM1blZrZzV6T2dSZnM6MTpjaQ
+
+      # Database
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: n8n
+
+      # Logging
+      N8N_LOG_OUTPUT: console,file
+      N8N_LOG_FILE_LOCATION: /home/node/files/n8n.log
+
+      # Puppeteer
+      NODE_FUNCTION_ALLOW_EXTERNAL: puppeteer,axios,qs,fs,url
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+      PUPPETEER_EXECUTABLE_PATH: /usr/local/bin/chromium
+      CHROMIUM_PATH: /usr/bin/chromium-browser
+      DISPLAY: ":98"
+
+    volumes:
+      - n8n-data:/home/node/files
+
+    security_opt:
+      - seccomp=unconfined
+    cap_add:
+      - SYS_ADMIN
 
 volumes:
   db-data:
+  n8n-data:
