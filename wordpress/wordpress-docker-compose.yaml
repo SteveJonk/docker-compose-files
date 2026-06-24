@@ -1,5 +1,4 @@
 version: "3.9"
-
 services:
   db:
     image: mysql:5.7
@@ -30,15 +29,16 @@ services:
     restart: always
     ports:
       - '8004:80'
-    user: "${UID}:${GID}"
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_USER: MyWordPressUser
       WORDPRESS_DB_PASSWORD: Pa$$5w0rD
       WORDPRESS_DB_NAME: MyWordPressDatabaseName
+      WORDPRESS_CONFIG_EXTRA: |
+        define('FS_METHOD', 'direct');
     volumes:
-      - ./wp-content:/var/www/html/wp-content
+      - ./wp-app:/var/www/html
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
-    
+
 volumes:
   mysql_data:
