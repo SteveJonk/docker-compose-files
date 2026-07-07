@@ -16,8 +16,8 @@ services:
     restart: always
     environment:
       PMA_HOST: db
-      PMA_USER: MyWordPressUser
-      PMA_PASSWORD: Pa$$5w0rD
+      # PMA_USER: MyWordPressUser # Uncomment if you want to auto login, not advises
+      # PMA_PASSWORD: Pa$$5w0rD # Uncomment if you want to auto login, not advises
     ports:
       - '8081:80'
 
